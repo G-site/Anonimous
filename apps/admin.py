@@ -17,7 +17,7 @@ admin_menu = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text='Попросить подписаться на тгк', callback_data='message3')]
     ])
 subscribe_menu = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text='🔔 Подписаться', url='https://t.me/+kKVb9YkgDF03ZDdi')]])
-share_menu = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text=f'🔗 Поделиться', url="https://t.me/share/url?url=По этой ссылке можно отправить мне анонимное сообщение👉t.me/Anonim_Messssage_Bot")]])
+share_menu = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text=f'🔗 Поделиться', url="https://t.me/share/url?url=По этой ссылке можно отправить мне анонимное сообщение👉 t.me/Anonim_Messssage_Bot")]])
 
 
 @admin_router.message(Command('admin'))
