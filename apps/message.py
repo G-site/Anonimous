@@ -6,7 +6,6 @@ from aiogram.types import (InlineKeyboardMarkup, InlineKeyboardButton, KeyboardB
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
 import os
-from dotenv import load_dotenv
 from hashids import Hashids
 
 
@@ -17,7 +16,6 @@ from bot_instance import bot
 message_router = Router()
 
 
-load_dotenv()
 HASHLIB_KEY = os.getenv("HASHLIB_KEY")
 API_ID = os.getenv("API_ID")
 API_HASH = os.getenv("API_HASH")
