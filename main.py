@@ -1,5 +1,4 @@
 import asyncio
-import logging
 from aiogram import Bot
 from aiogram.types import BotCommand, BotCommandScopeDefault
 
@@ -31,7 +30,6 @@ async def main():
 
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO)
     try:
         loop = asyncio.SelectorEventLoop()
         asyncio.set_event_loop(loop)
