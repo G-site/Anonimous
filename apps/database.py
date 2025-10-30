@@ -1,10 +1,9 @@
 import os
-from dotenv import load_dotenv
 from hashids import Hashids
 import psycopg  # psycopg3
 from psycopg.rows import dict_row
 
-load_dotenv()
+
 HOST = os.getenv("DB_HOST")
 PORT = int(os.getenv("DB_PORT"))
 DATABASE = os.getenv("DB_NAME")
