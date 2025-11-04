@@ -44,7 +44,7 @@ class MessageStates(StatesGroup):
 
 @message_router.message(Command('send'))
 async def send_by_command(message: Message, state: FSMContext):
-    await message.answer(text="📬 <b>Кому хочешь отправить анонимное сообщение?</b>\n\n👤 Выбери пользователя из списка ниже, чтобы отправить своё послание 🤫", reply_markup=send_menu, parse_mode="HTML", message_effect_id="5046509860389126442")
+    await message.answer(text="📬 <b>Кому хочешь отправить анонимное сообщение?</b>\n\n👤 Выбери пользователя из списка ниже, чтобы отправить своё послание 🤫", reply_markup=send_menu, parse_mode="HTML")
     await state.set_state(MessageStates.user)
 
 
