@@ -30,7 +30,7 @@ send_menu = ReplyKeyboardMarkup(keyboard=[
         [KeyboardButton(text="❌ Отмена")]
         ], resize_keyboard=True, one_time_keyboard=True)
 share_menu = InlineKeyboardMarkup(inline_keyboard=[
-    [InlineKeyboardButton(text='🤝 Поделиться ботом', url='https://t.me/share/url?url=')]
+    [InlineKeyboardButton(text='🤝 Поделиться ботом', url='https://t.me/share/url?url=https://t.me/share/url?url=Зайди в ботаб что бы получать анонимные сообщения👉t.me/Anonim_Messssage_Bot')]
     ])
 close_menu = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text='❌ Отмена', callback_data='cancel')]
