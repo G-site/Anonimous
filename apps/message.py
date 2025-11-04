@@ -5,7 +5,7 @@ from aiogram.types import LabeledPrice, PreCheckoutQuery
 from aiogram.types import (InlineKeyboardMarkup, InlineKeyboardButton, KeyboardButtonRequestUser, ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove)
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
-from aiogram.exceptions import TelegramForbiddenError, TelegramBadRequest
+from aiogram.exceptions import TelegramForbiddenError, TelegramBadRequest, TelegramAPIError
 import os
 from hashids import Hashids
 
@@ -110,6 +110,9 @@ async def send_message(message: Message, state: FSMContext):
         except TelegramForbiddenError:
             hash = get_my_hash(my_id)
             await message.answer(text=f"😅 <b>Упс...</b>\n\nСообщение не было отправлено, потому что этот пользователь ещё не пользуется ботом 🚫\n\n🔗 <b>Твоя ссылка для приглашения:</b>\n<i>https://t.me/Anonim_Messssage_Bot?start={hash}</i>\n\nОтправь её другу, чтобы он подключился и вы смогли обмениваться анонимными сообщениями 🤫", reply_markup=share_menu, parse_mode="HTML")
+        except TelegramAPIError as e:
+            await message.answer(text=f"😅 <b>Упс...</b>\n\nСообщение не было отправлено, потому что этот пользователь ещё не пользуется ботом 🚫\n\n🔗 <b>Твоя ссылка для приглашения:</b>\n<i>https://t.me/Anonim_Messssage_Bot?start={hash}</i>\n\nОтправь её другу, чтобы он подключился и вы смогли обмениваться анонимными сообщениями 🤫", reply_markup=share_menu, parse_mode="HTML")
+            print("TelegramAPIError:", e)
         except Exception as e:
             await message.answer(text="⚙️ <b>Упс...</b>\n\nСообщение не было отправлено по техническим причинам 😔\n\nПожалуйста, попробуй ещё раз чуть позже ⏳", reply_markup=ReplyKeyboardRemove(), parse_mode="HTML")
             print(e)
