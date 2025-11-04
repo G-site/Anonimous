@@ -3,7 +3,6 @@ from aiogram.filters import Command, CommandStart
 from aiogram.types import Message, CallbackQuery
 from aiogram.types import (InlineKeyboardMarkup, InlineKeyboardButton)
 from aiogram.fsm.context import FSMContext
-import os
 from hashids import Hashids
 
 
@@ -24,7 +23,8 @@ start_menu = InlineKeyboardMarkup(inline_keyboard=[
     ])
 about_menu = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text='📣 Telegram-канал', url='https://t.me/+hOyJbBMC508xMzIy')],
-    [InlineKeyboardButton(text='🛠 Поддержка', url='https://t.me/orlovurasuper')]
+    [InlineKeyboardButton(text='🛠 Поддержка', url='https://t.me/orlovurasuper')],
+    [InlineKeyboardButton(text='🔙 Назад', callback_data='start')]
     ])
 instruction_menu = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text='📝 Отправить сообщение', callback_data='send')],
@@ -38,7 +38,7 @@ async def start(message: Message, command: Command, state: FSMContext):
     args = command.args
     if not args:
         hash = await get_my_hash(message.from_user.id)
-        await message.answer(text=f"👋 <b>Привет!</b>\nРад видеть тебя в нашем анонимном чате 💌\n\n🔗 <b>Твоя секретная ссылка:</b> <i>https://t.me/Anonim_Messssage_Bot?start={hash}</i>\n📤 <b><a href='https://t.me/share/url?url=По этой ссылке можно отправить мне анонимное сообщение👉 t.me/Anonim_Messssage_Bot?start={hash}'>Поделись ею с друзьями:</a></b> <i>чтобы они могли отправлять тебе анонимные сообщения</i>\n\nВыбери действие ниже ⬇️", reply_markup=start_menu, parse_mode="HTML", disable_web_page_preview=True)
+        await message.answer(text=f"👋 <b>Привет!</b>\nРад видеть тебя в нашем анонимном чате 💌\n\n🔗 <b>Твоя секретная ссылка:</b> <i>https://t.me/Anonim_Messssage_Bot?start={hash}</i>\n📤 <b><a href='https://t.me/share/url?url=По этой ссылке можно отправить мне анонимное сообщение👉t.me/Anonim_Messssage_Bot?start={hash}'>Поделись ею с друзьями:</a></b> <i>чтобы они могли отправлять тебе анонимные сообщения</i>\n\nВыбери действие ниже ⬇️", reply_markup=start_menu, parse_mode="HTML", disable_web_page_preview=True)
     elif message.from_user.id == hashids.decode(args)[0]:
         await message.answer(text="🤔 <b>Хм...</b>\nПохоже, ты нажал на <i>свою собственную ссылку</i> 💌\n\n📢 Анонимные сообщения можно отправлять другим людям, а не себе 😅\nПопробуй поделиться своей ссылкой с друзьями и получай секретные послания! 🔗", reply_markup=start_menu, parse_mode="HTML")
     else:
