@@ -92,7 +92,7 @@ async def send_message(message: Message, state: FSMContext):
             user = data["user"]
             recipient_menu = InlineKeyboardMarkup(inline_keyboard=[
                 [InlineKeyboardButton(text='💬 Ответить', callback_data=f'answer_{my_id}')],
-                [InlineKeyboardButton(text='🕵️‍♂️ Узнать кто это', callback_data=f'who_{my_id}')]
+                [InlineKeyboardButton(text='🕵️‍♂️ Узнать кто', callback_data=f'who_{my_id}')]
             ])
             await bot.send_message(text="🔔 <b>У тебя новое анонимное сообщение!</b>", chat_id=user, parse_mode="HTML")
             await bot.copy_message(
