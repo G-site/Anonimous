@@ -1,3 +1,4 @@
+import asyncio
 from aiogram import Router, F
 from aiogram.types import Message, CallbackQuery
 from aiogram.filters import Command
@@ -5,7 +6,7 @@ from aiogram.exceptions import TelegramAPIError
 from aiogram.types import (InlineKeyboardMarkup, InlineKeyboardButton)
 
 
-from apps.database import check_admin, get_all_users, get_my_hash
+from apps.database import check_admin, get_all_users
 
 
 admin_router = Router()
@@ -17,7 +18,7 @@ admin_menu = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text='Попросить подписаться на тгк', callback_data='message3')]
     ])
 subscribe_menu = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text='🔔 Подписаться', url='https://t.me/+kKVb9YkgDF03ZDdi')]])
-share_menu = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text=f'🔗 Поделиться', url="https://t.me/share/url?url=По этой ссылке можно отправить мне анонимное сообщение👉 t.me/Anonim_Messssage_Bot")]])
+share_menu = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text='🔗 Поделиться', url="https://t.me/share/url?url=По этой ссылке можно отправить мне анонимное сообщение👉t.me/Anonim_Messssage_Bot")]])
 
 
 @admin_router.message(Command('admin'))
@@ -43,8 +44,9 @@ async def subscribe(callback: CallbackQuery):
                 reply_markup=subscribe_menu
             )
             sent += 1
-        except TelegramAPIError as e:
-            print(f"Ошибка, не всем отправлено, {e}")
+            await asyncio.sleep(0.5)
+        except TelegramAPIError:
+            pass
     await callback.answer(f"✅ Отправлено {sent} пользователям!")
 
 
@@ -54,7 +56,6 @@ async def share(callback: CallbackQuery):
     sent = 0
     for id in users:
         try:
-            hash = await get_my_hash(id)
             await callback.bot.send_message(
                 chat_id=id,
                 text="🤝 <b>Поделись с другом!</b>\n\nХочешь получать больше анонимных сообщений и сюрпризов? 🎁\nОтправь свою секретную ссылку другу и пусть он тоже попробует наш бот 💌\n\n📤 Чем больше друзей — тем веселее и интереснее! 😎",
@@ -62,8 +63,9 @@ async def share(callback: CallbackQuery):
                 reply_markup=share_menu
             )
             sent += 1
-        except TelegramAPIError as e:
-            print(f"Ошибка, не всем отправлено, {e}")
+            await asyncio.sleep(0.5)
+        except TelegramAPIError:
+            pass
     await callback.answer(f"✅ Отправлено {sent} пользователям!")
 
 
@@ -79,6 +81,7 @@ async def tech(callback: CallbackQuery):
                 parse_mode="HTML"
             )
             sent += 1
-        except TelegramAPIError as e:
-            print(f"Ошибка, не всем отправлено, {e}")
+            await asyncio.sleep(0.5)
+        except TelegramAPIError:
+            pass
     await callback.answer(f"✅ Отправлено {sent} пользователям!")
