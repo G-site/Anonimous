@@ -140,7 +140,6 @@ async def who(callback: CallbackQuery):
     user_id = callback.data[len("who_"):]
     user = user_id
     prices = [LabeledPrice(label="🕵️‍♂️ Узнай, кто отправил сообщение!", amount=20)]
-    print(user)
     await bot.send_invoice(
         chat_id=callback.message.chat.id,
         title="🕵️‍♂️ Узнай, кто отправил сообщение!",
