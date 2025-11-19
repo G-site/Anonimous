@@ -19,9 +19,6 @@ message_router = Router()
 
 ADMIN = os.getenv("ADMIN")
 HASHLIB_KEY = os.getenv("HASHLIB_KEY")
-API_ID = os.getenv("API_ID")
-API_HASH = os.getenv("API_HASH")
-SESSION_STRING = os.getenv("SESSION_STRING")
 hashids = Hashids(salt=HASHLIB_KEY, min_length=8)
 
 
@@ -53,6 +50,7 @@ async def send_by_callback(callback: CallbackQuery, state: FSMContext):
     await callback.message.delete()
     await callback.message.answer(text="📬 <b>Кому хочешь отправить анонимное сообщение?</b>\n\n👤 Выбери пользователя из списка ниже, чтобы отправить своё послание 🤫", reply_markup=send_menu, parse_mode="HTML")
     await state.set_state(MessageStates.user)
+    await callback.answer("👤 Выбери получателя")
 
 
 async def send_by_args(args, message: Message, state: FSMContext):
@@ -123,8 +121,8 @@ async def send_message(message: Message, state: FSMContext):
 
 @message_router.callback_query(MessageStates.text, F.data == "cancel")
 async def cancel_callback(callback: CallbackQuery, state: FSMContext):
-    await callback.message.delete()
     await state.clear()
+    await callback.answer("❌ Отмена")
 
 
 @message_router.callback_query(F.data.startswith("answer_"))
@@ -134,6 +132,7 @@ async def answer(callback: CallbackQuery, state: FSMContext):
     await state.update_data(user=user_id)
     await callback.message.answer(text="✏️ <b>Напиши своё анонимное послание</b>\n\nТы можешь отправить текст, фото, стикер или любое другое сообщение 🤫\nКогда будешь готов, просто отправь его в чат.", reply_markup=close_menu, parse_mode="HTML")
     await state.set_state(MessageStates.text)
+    await callback.answer("✏️ Напиши сообщение")
 
 
 @message_router.callback_query(F.data.startswith("who_"))
@@ -151,6 +150,7 @@ async def who(callback: CallbackQuery):
         prices=prices,
         start_parameter="buy_stars_product"
     )
+    await callback.answer("🕵️‍♂️ Узнать кто")
 
 
 @message_router.pre_checkout_query()
