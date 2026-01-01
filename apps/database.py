@@ -86,7 +86,7 @@ async def get_my_hash(user_id):
         raise RuntimeError("DB pool is not initialized")
 
     async with pool.cursor() as cur:
-        await cur.execute("SELECT user_hash FROM users WHERE id = %s;", (user_id,))
+        await cur.execute("SELECT user_hash FROM users WHERE id = %s::bigint;", (user_id,))
         row = await cur.fetchone()
         return row["user_hash"] if row else None
 
