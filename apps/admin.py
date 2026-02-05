@@ -47,7 +47,7 @@ async def subscribe(callback: CallbackQuery):
             await asyncio.sleep(0.5)
         except TelegramAPIError:
             pass
-    await callback.answer(f"✅ Отправлено {sent} пользователям!")
+    await callback.message.answer(f"✅ Отправлено {sent} пользователям!")
 
 
 @admin_router.callback_query(F.data == 'message2')
@@ -66,7 +66,7 @@ async def share(callback: CallbackQuery):
             await asyncio.sleep(0.5)
         except TelegramAPIError:
             pass
-    await callback.answer(f"✅ Отправлено {sent} пользователям!")
+    await callback.message.answer(f"✅ Отправлено {sent} пользователям!")
 
 
 @admin_router.callback_query(F.data == 'message1')
@@ -84,4 +84,4 @@ async def tech(callback: CallbackQuery):
             await asyncio.sleep(0.5)
         except TelegramAPIError:
             pass
-    await callback.answer(f"✅ Отправлено {sent} пользователям!")
+    await callback.message.answer(f"✅ Отправлено {sent} пользователям!")
