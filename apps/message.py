@@ -7,7 +7,6 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
 from aiogram.exceptions import TelegramForbiddenError, TelegramBadRequest, TelegramAPIError
 import os
-from dotenv import load_dotenv
 from hashids import Hashids
 
 
@@ -18,7 +17,10 @@ from bot_instance import bot
 message_router = Router()
 
 
+<<<<<<< HEAD
 load_dotenv()
+=======
+>>>>>>> c5a05db5661b8e3d63a1d57d379bd8ae6e5d3bef
 ADMIN = os.getenv("ADMIN")
 HASHLIB_KEY = os.getenv("HASHLIB_KEY")
 hashids = Hashids(salt=HASHLIB_KEY, min_length=8)
@@ -49,6 +51,7 @@ async def send_by_command(message: Message, state: FSMContext):
 
 @message_router.callback_query(F.data == 'send')
 async def send_by_callback(callback: CallbackQuery, state: FSMContext):
+    await callback.message.delete()
     await callback.message.answer(text="📬 <b>Кому хочешь отправить анонимное сообщение?</b>\n\n👤 Выбери пользователя из списка ниже, чтобы отправить своё послание 🤫", reply_markup=send_menu, parse_mode="HTML")
     await state.set_state(MessageStates.user)
     await callback.answer("👤 Выбери получателя")
@@ -66,7 +69,11 @@ async def get_message(message: Message, state: FSMContext):
     if message.text:
         text = message.text
         if text == '❌ Отмена':
+<<<<<<< HEAD
             pass
+=======
+            await message.delete()
+>>>>>>> c5a05db5661b8e3d63a1d57d379bd8ae6e5d3bef
     else:
         try:
             user_id = message.user_shared.user_id
@@ -86,6 +93,10 @@ async def send_message(message: Message, state: FSMContext):
     data = await state.get_data()
     my_id = message.from_user.id
     if message.text == '❌ Отмена':
+<<<<<<< HEAD
+=======
+        await message.delete()
+>>>>>>> c5a05db5661b8e3d63a1d57d379bd8ae6e5d3bef
         await state.clear()
     else:
         try:

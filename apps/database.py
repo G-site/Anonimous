@@ -1,10 +1,9 @@
 import os
-from dotenv import load_dotenv
 from hashids import Hashids
 import psycopg  # psycopg["binary"]
 from psycopg.rows import dict_row
 
-load_dotenv()
+
 HOST = os.getenv("DB_HOST")
 PORT = os.getenv("DB_PORT")
 DATABASE = os.getenv("DB_NAME")
@@ -82,12 +81,12 @@ async def get_all_users():
         return [row["id"] for row in rows]
 
 
-async def get_my_hash(user_id):
+async def get_my_hash(id):
     if pool is None:
         raise RuntimeError("DB pool is not initialized")
 
     async with pool.cursor() as cur:
-        await cur.execute("SELECT user_hash FROM users WHERE id = %s;", (user_id,))
+        await cur.execute("SELECT user_hash FROM users WHERE id = %s::bigint;", (id,))
         row = await cur.fetchone()
         return row["user_hash"] if row else None
 

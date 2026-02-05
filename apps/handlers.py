@@ -4,7 +4,6 @@ from aiogram.types import Message, CallbackQuery
 from aiogram.types import (InlineKeyboardMarkup, InlineKeyboardButton)
 from aiogram.fsm.context import FSMContext
 import os
-from dotenv import load_dotenv
 from hashids import Hashids
 
 
@@ -14,7 +13,6 @@ from apps.database import set_user, get_my_hash
 router = Router()
 
 
-load_dotenv()
 HASHLIB_KEY = os.getenv("HASHLIB_KEY")
 hashids = Hashids(salt=HASHLIB_KEY, min_length=8)
 
