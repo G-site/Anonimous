@@ -1,12 +1,12 @@
 import os
 from dotenv import load_dotenv
 from hashids import Hashids
-import psycopg  # psycopg3
+import psycopg  # psycopg["binary"]
 from psycopg.rows import dict_row
 
 load_dotenv()
 HOST = os.getenv("DB_HOST")
-PORT = int(os.getenv("DB_PORT"))
+PORT = os.getenv("DB_PORT")
 DATABASE = os.getenv("DB_NAME")
 USER = os.getenv("DB_USER")
 PASSWORD = os.getenv("DB_PASSWORD")
@@ -14,7 +14,7 @@ HASHLIB_KEY = os.getenv("HASHLIB_KEY")
 
 hashids = Hashids(salt=HASHLIB_KEY, min_length=8)
 
-# Пул соединений
+
 pool: psycopg.AsyncConnection | None = None
 
 
@@ -27,9 +27,9 @@ async def connect():
             dbname=DATABASE,
             user=USER,
             password=PASSWORD,
-            autocommit=True,  # для простоты
-            row_factory=dict_row,  # чтобы получать словари вместо кортежей
-            sslmode='require'  # для Supabase
+            autocommit=True,
+            row_factory=dict_row,
+            sslmode='require'
         )
         print("Connected to DB")
     except Exception as e:
@@ -41,15 +41,22 @@ async def set_user(id, username, name):
         raise RuntimeError("DB pool is not initialized")
 
     encoded = hashids.encode(id)
-    async with pool.cursor() as cur:
-        await cur.execute(
-            """
-            INSERT INTO users (id, username, name, user_hash)
-            VALUES (%s, %s, %s, %s)
-            ON CONFLICT (id) DO NOTHING;
-            """,
-            (id, username, name, encoded)
+    async with pool.cursor() as conn:
+        await conn.execute(
+            "SELECT status FROM users WHERE id = %s;",
+            (id,)
         )
+        row = await conn.fetchone()
+        if not row:
+            await conn.execute(
+                """
+                INSERT INTO users (id, username, name, user_hash)
+                VALUES (%s, %s, %s, %s);
+                """,
+                (id, username, name, encoded)
+            )
+        else:
+            pass
 
 
 async def check_admin(id):
