@@ -1,9 +1,9 @@
 import os
 from hashids import Hashids
-import psycopg  # psycopg["binary"]
-from psycopg.rows import dict_row
+import asyncpg
+from dotenv import load_dotenv
 
-
+load_dotenv()
 HOST = os.getenv("DB_HOST")
 PORT = os.getenv("DB_PORT")
 DATABASE = os.getenv("DB_NAME")
@@ -14,21 +14,19 @@ HASHLIB_KEY = os.getenv("HASHLIB_KEY")
 hashids = Hashids(salt=HASHLIB_KEY, min_length=8)
 
 
-pool: psycopg.AsyncConnection | None = None
+pool: asyncpg.Pool | None = None
 
 
 async def connect():
     global pool
     try:
-        pool = await psycopg.AsyncConnection.connect(
+        pool = await asyncpg.create_pool(
             host=HOST,
             port=PORT,
-            dbname=DATABASE,
+            database=DATABASE,
             user=USER,
             password=PASSWORD,
-            autocommit=True,
-            row_factory=dict_row,
-            sslmode='require'
+            ssl="require"
         )
         print("Connected to DB")
     except Exception as e:
@@ -40,19 +38,18 @@ async def set_user(id, username, name):
         raise RuntimeError("DB pool is not initialized")
 
     encoded = hashids.encode(id)
-    async with pool.cursor() as conn:
-        await conn.execute(
-            "SELECT status FROM users WHERE id = %s;",
-            (id,)
+    async with pool.acquire() as conn:
+        row = await conn.fetchrow(
+            "SELECT status FROM users WHERE id = $1;",
+            id
         )
-        row = await conn.fetchone()
         if not row:
             await conn.execute(
                 """
                 INSERT INTO users (id, username, name, user_hash)
-                VALUES (%s, %s, %s, %s);
+                VALUES ($1, $2, $3, $4);
                 """,
-                (id, username, name, encoded)
+                id, username, name, encoded
             )
         else:
             pass
@@ -62,12 +59,11 @@ async def check_admin(id):
     if pool is None:
         raise RuntimeError("DB pool is not initialized")
 
-    async with pool.cursor() as cur:
-        await cur.execute(
-            "SELECT status FROM users WHERE id = %s;",
-            (id,)
+    async with pool.acquire() as conn:
+        row = await conn.fetchrow(
+            "SELECT status FROM users WHERE id = $1;",
+            id
         )
-        row = await cur.fetchone()
         return row["status"] if row else None
 
 
@@ -75,9 +71,8 @@ async def get_all_users():
     if pool is None:
         raise RuntimeError("DB pool is not initialized")
 
-    async with pool.cursor() as cur:
-        await cur.execute("SELECT id FROM users;")
-        rows = await cur.fetchall()
+    async with pool.acquire() as conn:
+        rows = await conn.fetch("SELECT id FROM users;")
         return [row["id"] for row in rows]
 
 
@@ -85,9 +80,8 @@ async def get_my_hash(id):
     if pool is None:
         raise RuntimeError("DB pool is not initialized")
 
-    async with pool.cursor() as cur:
-        await cur.execute("SELECT user_hash FROM users WHERE id = %s::bigint;", (id,))
-        row = await cur.fetchone()
+    async with pool.acquire() as conn:
+        row = await conn.fetchrow("SELECT user_hash FROM users WHERE id = $1::bigint;", id)
         return row["user_hash"] if row else None
 
 
@@ -95,7 +89,6 @@ async def get_name_by_id(id):
     if pool is None:
         raise RuntimeError("DB pool is not initialized")
 
-    async with pool.cursor() as cur:
-        await cur.execute("SELECT name FROM users WHERE id = %s;", (id,))
-        row = await cur.fetchone()
+    async with pool.acquire() as conn:
+        row = await conn.fetchrow("SELECT name FROM users WHERE id = $1;", id)
         return row["name"] if row else None
