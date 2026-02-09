@@ -36,12 +36,6 @@ DB_PASSWORD=your_db_password
 HASHLIB_KEY=your_hash_salt
 ```
 
-Дополнительно для скрипта синхронизации sequence:
-```
-DB_USERS_TABLE=users
-DB_USERS_PRIMARY_ID_COLUMN=primary_id
-```
-
 ## База данных
 Проект ожидает таблицу `users` со следующими полями:
 - `primary_id` (identity/auto‑increment)
