@@ -46,8 +46,8 @@ async def set_user(id, username, name):
         if not row:
             await conn.execute(
                 """
-                INSERT INTO users (id, username, name, user_hash)
-                VALUES ($1, $2, $3, $4);
+                INSERT INTO users (id, username, name, user_hash, created_at)
+                VALUES ($1, $2, $3, $4, NOW());
                 """,
                 id, username, name, encoded
             )
