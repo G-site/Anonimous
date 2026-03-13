@@ -14,8 +14,9 @@ from apps.sender import setup_scheduler
 async def set_bot_commands(bot: Bot):
     commands = [
         BotCommand(command="start", description="📋 Меню"),
-        BotCommand(command="about", description="ℹ️ О нас"),
+        BotCommand(command="profile", description="👤 Профиль"),
         BotCommand(command="send", description="💌 Отправить сообщение"),
+        BotCommand(command="about", description="ℹ️ О нас"),
         BotCommand(command="instruction", description="❓ FAQ")
     ]
     await bot.set_my_commands(commands, scope=BotCommandScopeDefault())
