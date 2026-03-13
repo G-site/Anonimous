@@ -103,9 +103,9 @@ async def send_message(message: Message, state: FSMContext):
                 message_id=message.message_id,
                 reply_markup=recipient_menu
             )
-            await add_receiv(user)
+            await add_receiv(int(user))
             await message.answer(text="✅ <b>Сообщение отправлено!</b>", reply_markup=ReplyKeyboardRemove(), parse_mode="HTML")
-            await add_send(my_id)
+            await add_send(int(my_id))
         except TelegramBadRequest:
             hash = await get_my_hash(my_id)
             await message.answer(text=f"😅 <b>Упс...</b>\n\nСообщение не было отправлено, потому что этот пользователь ещё не пользуется ботом 🚫\n\n🔗 <b>Твоя ссылка для приглашения:</b>\n<i>https://t.me/Anonim_Messssage_Bot?start={hash}</i>\n\nОтправь её другу, чтобы он подключился и вы смогли обмениваться анонимными сообщениями 🤫", reply_markup=share_menu, parse_mode="HTML", disable_web_page_preview=True)
