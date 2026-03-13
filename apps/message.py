@@ -11,7 +11,7 @@ from hashids import Hashids
 from dotenv import load_dotenv
 
 
-from apps.database import get_my_hash, get_name_by_id
+from apps.database import get_my_hash, get_name_by_id, add_stars, add_receiv, add_send, add_watch
 from bot_instance import bot
 
 
@@ -25,14 +25,14 @@ hashids = Hashids(salt=HASHLIB_KEY, min_length=8)
 
 
 send_menu = ReplyKeyboardMarkup(keyboard=[
-        [KeyboardButton(text="👤 Выбрать", request_user=KeyboardButtonRequestUser(request_id=1, user_is_bot=False))],
-        [KeyboardButton(text="❌ Отмена")]
+        [KeyboardButton(text="👤 Выбрать", request_user=KeyboardButtonRequestUser(request_id=1, user_is_bot=False), style="primary")],
+        [KeyboardButton(text="❌ Отмена", style="danger")]
         ], resize_keyboard=True, one_time_keyboard=True)
 share_menu = InlineKeyboardMarkup(inline_keyboard=[
-    [InlineKeyboardButton(text='🤝 Поделиться ботом', url='https://t.me/share/url?url=Зайди в бота, что бы получать анонимные сообщения👉 t.me/Anonim_Messssage_Bot')]
+    [InlineKeyboardButton(text='🤝 Поделиться ботом', url='https://t.me/share/url?url=t.me/Anonim_Messssage_Bot', style="primary")]
     ])
 close_menu = InlineKeyboardMarkup(inline_keyboard=[
-    [InlineKeyboardButton(text='❌ Отмена', callback_data='cancel')]
+    [InlineKeyboardButton(text='❌ Отмена', callback_data='cancel', style="danger")]
     ])
 
 
@@ -58,6 +58,7 @@ async def send_by_callback(callback: CallbackQuery, state: FSMContext):
 async def send_by_args(args, message: Message, state: FSMContext):
     user_id = hashids.decode(args)[0]
     await state.update_data(user=user_id)
+    await add_watch(user_id)
     await message.answer(text="✏️ <b>Напиши своё анонимное послание</b>\n\nТы можешь отправить текст, фото, стикер или любое другое сообщение 🤫\nКогда будешь готов, просто отправь его в чат.", reply_markup=close_menu, parse_mode="HTML")
     await state.set_state(MessageStates.text)
 
@@ -102,7 +103,9 @@ async def send_message(message: Message, state: FSMContext):
                 message_id=message.message_id,
                 reply_markup=recipient_menu
             )
+            await add_receiv(user)
             await message.answer(text="✅ <b>Сообщение отправлено!</b>", reply_markup=ReplyKeyboardRemove(), parse_mode="HTML")
+            await add_send(my_id)
         except TelegramBadRequest:
             hash = await get_my_hash(my_id)
             await message.answer(text=f"😅 <b>Упс...</b>\n\nСообщение не было отправлено, потому что этот пользователь ещё не пользуется ботом 🚫\n\n🔗 <b>Твоя ссылка для приглашения:</b>\n<i>https://t.me/Anonim_Messssage_Bot?start={hash}</i>\n\nОтправь её другу, чтобы он подключился и вы смогли обмениваться анонимными сообщениями 🤫", reply_markup=share_menu, parse_mode="HTML", disable_web_page_preview=True)
@@ -124,6 +127,7 @@ async def send_message(message: Message, state: FSMContext):
 async def cancel_callback(callback: CallbackQuery, state: FSMContext):
     await state.clear()
     await callback.answer("❌ Отмена")
+    await callback.message.delete()
 
 
 @message_router.callback_query(F.data.startswith("answer_"))
@@ -163,6 +167,7 @@ async def handle_payment(message: Message):
     comment = message.successful_payment.invoice_payload
     name = await get_name_by_id(comment)
     await message.answer(f"✅ <b>Оплата прошла успешно!</b>\n\n💬 Сообщение было отправлено пользователем <b><a href='tg://openmessage?user_id={comment}'>{name}</a></b>🤫", parse_mode="HTML", message_effect_id="5046509860389126442")
+    await add_stars(message.from_user.id)
 
 
 @message_router.message(Command("refund"))

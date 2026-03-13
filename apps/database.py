@@ -46,8 +46,8 @@ async def set_user(id, username, name):
         if not row:
             await conn.execute(
                 """
-                INSERT INTO users (id, username, name, user_hash)
-                VALUES ($1, $2, $3, $4);
+                INSERT INTO users (id, username, name, user_hash, created_at)
+                VALUES ($1, $2, $3, $4, NOW());
                 """,
                 id, username, name, encoded
             )
@@ -92,3 +92,47 @@ async def get_name_by_id(id):
     async with pool.acquire() as conn:
         row = await conn.fetchrow("SELECT name FROM users WHERE id = $1;", id)
         return row["name"] if row else None
+
+
+async def add_stars(id):
+    if pool is None:
+        raise RuntimeError("DB pool is not initialized")
+    async with pool.acquire() as conn:
+        await conn.execute("""UPDATE users SET wasted = wasted + 20 WHERE id = $1;""", id)
+
+
+async def add_watch(id):
+    if pool is None:
+        raise RuntimeError("DB pool is not initialized")
+    async with pool.acquire() as conn:
+        await conn.execute("""UPDATE users SET viewed = viewed + 1 WHERE id = $1;""", id)
+
+
+async def add_send(id):
+    if pool is None:
+        raise RuntimeError("DB pool is not initialized")
+    async with pool.acquire() as conn:
+        await conn.execute("""UPDATE users SET sent = sent + 1 WHERE id = $1;""", id)
+
+
+async def add_receiv(id):
+    if pool is None:
+        raise RuntimeError("DB pool is not initialized")
+    async with pool.acquire() as conn:
+        await conn.execute("""UPDATE users SET received = received + 1 WHERE id = $1;""", id)
+
+
+async def get_info(id):
+    if pool is None:
+        raise RuntimeError("DB pool is not initialized")
+
+    async with pool.acquire() as conn:
+        row = await conn.fetchrow(
+            "SELECT sent, received, viewed, wasted FROM users WHERE id = $1;",
+            id
+        )
+        sent = row['sent']
+        received = row['received']
+        viewed = row['viewed']
+        wasted = row['wasted']
+        return sent, received, viewed, wasted

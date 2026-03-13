@@ -8,6 +8,7 @@ from apps.message import message_router
 from apps.admin import admin_router
 from apps.database import connect
 from bot_instance import bot, dp
+from apps.sender import setup_scheduler
 
 
 async def set_bot_commands(bot: Bot):
@@ -21,6 +22,7 @@ async def set_bot_commands(bot: Bot):
 
 
 async def main():
+    setup_scheduler()
     await connect()
     await set_bot_commands(bot)
     dp.include_router(router)
