@@ -11,7 +11,7 @@ from hashids import Hashids
 from dotenv import load_dotenv
 
 
-from apps.database import get_my_hash, get_name_by_id, add_stars, add_receiv, add_send, add_watch
+from apps.database import get_my_hash, get_name_by_id, add_stars, add_receiv, add_send, add_watch, check_admin
 from bot_instance import bot
 
 
@@ -19,7 +19,6 @@ message_router = Router()
 
 
 load_dotenv()
-ADMIN = os.getenv("ADMIN")
 HASHLIB_KEY = os.getenv("HASHLIB_KEY")
 hashids = Hashids(salt=HASHLIB_KEY, min_length=8)
 
@@ -58,7 +57,7 @@ async def send_by_callback(callback: CallbackQuery, state: FSMContext):
 async def send_by_args(args, message: Message, state: FSMContext):
     user_id = hashids.decode(args)[0]
     await state.update_data(user=user_id)
-    await add_watch(user_id)
+    await add_watch(int(user_id))
     await message.answer(text="✏️ <b>Напиши своё анонимное послание</b>\n\nТы можешь отправить текст, фото, стикер или любое другое сообщение 🤫\nКогда будешь готов, просто отправь его в чат.", reply_markup=close_menu, parse_mode="HTML")
     await state.set_state(MessageStates.text)
 
@@ -105,7 +104,7 @@ async def send_message(message: Message, state: FSMContext):
             )
             await add_receiv(int(user))
             await message.answer(text="✅ <b>Сообщение отправлено!</b>", reply_markup=ReplyKeyboardRemove(), parse_mode="HTML")
-            await add_send(int(my_id))
+            await add_send(my_id)
         except TelegramBadRequest:
             hash = await get_my_hash(my_id)
             await message.answer(text=f"😅 <b>Упс...</b>\n\nСообщение не было отправлено, потому что этот пользователь ещё не пользуется ботом 🚫\n\n🔗 <b>Твоя ссылка для приглашения:</b>\n<i>https://t.me/Anonim_Messssage_Bot?start={hash}</i>\n\nОтправь её другу, чтобы он подключился и вы смогли обмениваться анонимными сообщениями 🤫", reply_markup=share_menu, parse_mode="HTML", disable_web_page_preview=True)
@@ -172,29 +171,33 @@ async def handle_payment(message: Message):
 
 @message_router.message(Command("refund"))
 async def refund_handler(message: Message, command: CommandObject):
-    if not command.args:
-        await message.answer("❗ Формат: `/refund <user_id> <charge_id>`", parse_mode="Markdown")
-        return
-    args = command.args.split()
-    if len(args) < 2:
-        await message.answer("⚠️ Нужно указать два аргумента: `/refund <user_id> <charge_id>`", parse_mode="Markdown")
-        return
-    user_id = int(args[0])
-    telegram_payment_charge_id = args[1]
-    try:
-        result = await bot.refund_star_payment(
-            user_id=user_id,
-            telegram_payment_charge_id=telegram_payment_charge_id
-        )
-        if result:
-            await message.answer(
-                f"✅ Возврат пользователю `{user_id}` по платёжному ID `{telegram_payment_charge_id}` успешно оформлен.",
-                parse_mode="Markdown"
+    status = await check_admin(message.from_user.id)
+    if status == 'M':
+        if not command.args:
+            await message.answer("❗ Формат: `/refund <user_id> <charge_id>`", parse_mode="Markdown")
+            return
+        args = command.args.split()
+        if len(args) < 2:
+            await message.answer("⚠️ Нужно указать два аргумента: `/refund <user_id> <charge_id>`", parse_mode="Markdown")
+            return
+        user_id = int(args[0])
+        telegram_payment_charge_id = args[1]
+        try:
+            result = await bot.refund_star_payment(
+                user_id=user_id,
+                telegram_payment_charge_id=telegram_payment_charge_id
             )
-        else:
-            await message.answer(
-                f"⚠️ Telegram не подтвердил возврат `{telegram_payment_charge_id}`.",
-                parse_mode="Markdown"
-            )
-    except Exception as e:
-        await message.answer(f"❌ Ошибка: `{e}`", parse_mode="Markdown")
+            if result:
+                await message.answer(
+                    f"✅ Возврат пользователю `{user_id}` по платёжному ID `{telegram_payment_charge_id}` успешно оформлен.",
+                    parse_mode="Markdown"
+                )
+            else:
+                await message.answer(
+                    f"⚠️ Telegram не подтвердил возврат `{telegram_payment_charge_id}`.",
+                    parse_mode="Markdown"
+                )
+        except Exception as e:
+            await message.answer(f"❌ Ошибка: `{e}`", parse_mode="Markdown")
+    else:
+        await message.answer("🚫 У тебя нет прав на выполнение этой команды.")
