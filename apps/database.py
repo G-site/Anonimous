@@ -136,3 +136,12 @@ async def get_info(id):
         viewed = row['viewed']
         wasted = row['wasted']
         return sent, received, viewed, wasted
+
+
+async def get_db():
+    if pool is None:
+        raise RuntimeError("DB pool is not initialized")
+
+    async with pool.acquire() as conn:
+        rows = await conn.fetch("SELECT * FROM users")
+        return rows
