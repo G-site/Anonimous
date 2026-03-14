@@ -3,10 +3,13 @@ from aiogram import Router, F
 from aiogram.types import Message, CallbackQuery
 from aiogram.filters import Command
 from aiogram.exceptions import TelegramAPIError
+from aiogram.types import BufferedInputFile
 from aiogram.types import (InlineKeyboardMarkup, InlineKeyboardButton)
+import io
+import pandas as pd
 
 
-from apps.database import check_admin, get_all_users
+from apps.database import check_admin, get_all_users, get_db
 
 
 admin_router = Router()
@@ -15,7 +18,8 @@ admin_router = Router()
 admin_menu = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text='Сообщить о тех-перерыве', callback_data='message1')],
     [InlineKeyboardButton(text='Попросить поделиться с другом', callback_data='message2')],
-    [InlineKeyboardButton(text='Попросить подписаться на тгк', callback_data='message3')]
+    [InlineKeyboardButton(text='Попросить подписаться на тгк', callback_data='message3')],
+    [InlineKeyboardButton(text='Скачать бд', callback_data='message4')]
     ])
 subscribe_menu = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text='🔔 Подписаться', url='https://t.me/+kKVb9YkgDF03ZDdi')]])
 share_menu = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text='🔗 Поделиться', url="https://t.me/share/url?url=t.me/Anonim_Messssage_Bot")]])
@@ -85,3 +89,18 @@ async def tech(callback: CallbackQuery):
         except TelegramAPIError:
             pass
     await callback.message.answer(f"✅ Отправлено {sent} пользователям!")
+
+
+@admin_router.callback_query(F.data == 'message4')
+async def download(callback: CallbackQuery):
+    rows = await get_db()
+    data = [dict(row) for row in rows]
+    df = pd.DataFrame(data)
+    buffer = io.BytesIO()
+    df.to_excel(buffer, index=False)
+    buffer.seek(0)
+    file = BufferedInputFile(
+        buffer.read(),
+        filename="database.xlsx"
+    )
+    await callback.message.answer_document(document=file, caption="🗄️Текущая база данных пользователей бота.")
