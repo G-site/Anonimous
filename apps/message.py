@@ -164,7 +164,7 @@ async def pre_checkout(pre_checkout: PreCheckoutQuery):
 
 @message_router.message(F.successful_payment)
 async def handle_payment(message: Message):
-    comment = message.successful_payment.invoice_payload
+    comment = int(message.successful_payment.invoice_payload)
     name = await get_name_by_id(comment)
     await message.answer(f"✅ <b>Оплата прошла успешно!</b>\n\n💬 Сообщение было отправлено пользователем <b><a href='tg://openmessage?user_id={comment}'>{name}</a></b>🤫", parse_mode="HTML", message_effect_id="5046509860389126442")
     await add_stars(message.from_user.id)
