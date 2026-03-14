@@ -172,9 +172,6 @@ async def handle_payment(message: Message):
 
 @message_router.message(Command("refund"))
 async def refund_handler(message: Message, command: CommandObject):
-    if message.from_user.id != ADMIN:
-        await message.answer("🚫 У тебя нет прав на выполнение этой команды.")
-        return
     if not command.args:
         await message.answer("❗ Формат: `/refund <user_id> <charge_id>`", parse_mode="Markdown")
         return
