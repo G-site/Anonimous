@@ -9,30 +9,43 @@ import io
 import pandas as pd
 
 
-from apps.database import check_admin, get_all_users, get_db
+from apps.database import check_admin, get_all_users, get_db, gen_promo, get_tech_promo
 
 
 admin_router = Router()
 
 
 admin_menu = InlineKeyboardMarkup(inline_keyboard=[
-    [InlineKeyboardButton(text='Сообщить о тех-перерыве', callback_data='message1')],
-    [InlineKeyboardButton(text='Попросить поделиться с другом', callback_data='message2')],
-    [InlineKeyboardButton(text='Попросить подписаться на тгк', callback_data='message3')],
-    [InlineKeyboardButton(text='Скачать бд', callback_data='message4')]
+    [InlineKeyboardButton(text='🛠️ Сообщить о тех. перерыве', callback_data='message1')],
+    [InlineKeyboardButton(text='👥 Попросить поделиться с другом', callback_data='message2')],
+    [InlineKeyboardButton(text='📢 Попросить подписаться на ТГК', callback_data='message3')],
+    [InlineKeyboardButton(text='💾 Скачать базу данных', callback_data='message4')],
+    [InlineKeyboardButton(text='🎟️ Промокоды', callback_data='message5')]
     ])
+
+promocode_menu = InlineKeyboardMarkup(inline_keyboard=[
+    [InlineKeyboardButton(text='🎲 Создать одноразовый', callback_data='gen_single')],
+    [InlineKeyboardButton(text='🔄 Создать многоразовый', callback_data='gen_multi')],
+    [InlineKeyboardButton(text='🔑 Получить тех. промокод', callback_data='gen_tech')],
+    [InlineKeyboardButton(text='🔙 Назад', callback_data='admin_menu')]
+    ])
+
 subscribe_menu = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text='🔔 Подписаться', url='https://t.me/+kKVb9YkgDF03ZDdi')]])
 share_menu = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text='🔗 Поделиться', url="https://t.me/share/url?url=t.me/Anonim_Messssage_Bot")]])
 
 
 @admin_router.message(Command('admin'))
-async def admin(message: Message):
+async def admin1(message: Message):
     status = await check_admin(message.from_user.id)
     if status == 'M':
-        name = message.from_user.first_name
-        await message.answer(f"Добро пожаловать в админ-панель, <b>{name}</b>!", reply_markup=admin_menu, parse_mode="HTML")
+        await message.answer(f"Добро пожаловать в админ-панель, <b>{message.from_user.first_name}</b>!", reply_markup=admin_menu, parse_mode="HTML")
     else:
         await message.answer(text="⚠️ <b>Упс!</b>\n\nТы <i>не являешься администратором</i> этого бота 🚫\nДоступ к этой функции ограничен только для администраторов 🛡\n\nЕсли ты считаешь, что это ошибка, обратись в нашу <b>поддержку</b> 🛠", parse_mode="HTML")
+
+
+@admin_router.callback_query(F.data == 'admin_menu')
+async def admin2(callback: CallbackQuery):
+    await callback.message.edit_text(f"Добро пожаловать в админ-панель, <b>{callback.from_user.first_name}</b>!", reply_markup=admin_menu, parse_mode="HTML")
 
 
 @admin_router.callback_query(F.data == 'message3')
@@ -104,3 +117,23 @@ async def download(callback: CallbackQuery):
         filename="database.xlsx"
     )
     await callback.message.answer_document(document=file, caption="🗄️Текущая база данных пользователей бота.")
+
+
+@admin_router.callback_query(F.data == 'message5')
+async def promocode(callback: CallbackQuery):
+    await callback.message.edit_text(text="🎟️ <b>Управление промокодами</b>", reply_markup=promocode_menu, parse_mode="HTML")
+
+
+@admin_router.callback_query(F.data.startswith("gen_"))
+async def promo_gen(callback: CallbackQuery):
+    action = callback.data[len("gen_"):]
+    match action:
+        case "single":
+            promo = await gen_promo(1)
+            await callback.message.answer(f"🎉 *Промокод успешно создан!*\n\n🎟 Промокод: `{promo}`\n🔄 Использований: *одноразовый*", parse_mode="Markdown")
+        case "multi":
+            promo = await gen_promo(99)
+            await callback.message.answer(f"🎉 *Промокод успешно создан!*\n\n🎟 Промокод: `{promo}`\n♾ Использований: *безлимитный*\n\n📝 Примечание: реальное количество использований промокода только 99 раз.", parse_mode="Markdown")
+        case "tech":
+            promo = await get_tech_promo()
+            await callback.message.answer(f"🔑 *Технический промокод выдан!*\n\n🎟 Промокод: `{promo}`\n♾ Тип: *безлимитный*\n\n📝 *Примечание:*\nДанный промокод предназначен исключительно для технических тестирований и проверки работоспособности системы.\n\n🚫 Передавать или распространять этот промокод другим лицам запрещено.\n\n👥 Промокод является единым для всех администраторов и не генерируется индивидуально.\n\n🔄 Промокод автоматически меняется один раз в неделю — *каждое воскресенье в 17:00*.", parse_mode="Markdown")
