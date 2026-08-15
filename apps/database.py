@@ -2,6 +2,9 @@ import os
 from hashids import Hashids
 import asyncpg
 from dotenv import load_dotenv
+import secrets
+import string
+
 
 load_dotenv()
 HOST = os.getenv("DB_HOST")
@@ -152,3 +155,78 @@ async def get_db():
     async with pool.acquire() as conn:
         rows = await conn.fetch("SELECT * FROM users")
         return rows
+
+
+async def regenerate_tech_promo():
+    if pool is None:
+        raise RuntimeError("DB pool is not initialized")
+    promo = ''.join(
+        secrets.choice(string.ascii_uppercase + string.digits)
+        for _ in range(10)
+    )
+    async with pool.acquire() as conn:
+        await conn.execute(
+            "UPDATE promocodes SET code = $1, uses = 999 WHERE type = 'tech'",
+            promo
+        )
+
+
+async def gen_promo(count):
+    if pool is None:
+        raise RuntimeError("DB pool is not initialized")
+    promo_type = "single" if count == 1 else "multi"
+    async with pool.acquire() as conn:
+        while True:
+            try:
+                promo = ''.join(
+                        secrets.choice(string.ascii_uppercase + string.digits)
+                        for _ in range(10)
+                    )
+                await conn.execute(
+                    """
+                    INSERT INTO promocodes (code, type, uses)
+                    VALUES ($1, $2, $3)
+                    RETURNING id, code, type, uses
+                    """,
+                    promo,
+                    promo_type,
+                    count
+                )
+                return promo
+            except asyncpg.UniqueViolationError:
+                continue
+
+
+async def get_tech_promo():
+    if pool is None:
+        raise RuntimeError("DB pool is not initialized")
+    async with pool.acquire() as conn:
+        promo = await conn.fetchrow(
+                "SELECT code FROM promocodes WHERE type = 'tech';"
+            )
+        return promo["code"] if promo else None
+
+
+async def use_promo(promo):
+    if pool is None:
+        raise RuntimeError("DB pool is not initialized")
+    async with pool.acquire() as conn:
+        result = await conn.fetchrow(
+            "SELECT uses FROM promocodes WHERE code = $1;",
+            promo
+        )
+        if result:
+            uses = result["uses"]
+            if uses == 1:
+                await conn.execute(
+                    "DELETE FROM promocodes WHERE code = $1;",
+                    promo
+                )
+            else:
+                await conn.execute(
+                    "UPDATE promocodes SET uses = uses - 1 WHERE code = $1;",
+                    promo
+                )
+            return True
+        else:
+            return False
