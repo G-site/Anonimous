@@ -23,7 +23,7 @@ Telegram-бот для обмена анонимными сообщениями.
 ## Установка
 
 ```powershell
-git clone <repository-url>
+git clone git clone https://github.com/G-site/Anonimous.git
 cd anonim-mess
 python -m venv venv
 .\venv\Scripts\Activate.ps1
