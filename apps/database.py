@@ -101,6 +101,13 @@ async def add_stars(id):
         await conn.execute("""UPDATE users SET wasted = wasted + 20 WHERE id = $1;""", id)
 
 
+async def refund_stars(id):
+    if pool is None:
+        raise RuntimeError("DB pool is not initialized")
+    async with pool.acquire() as conn:
+        await conn.execute("""UPDATE users SET wasted = wasted - 20 WHERE id = $1;""", id)
+
+
 async def add_watch(id):
     if pool is None:
         raise RuntimeError("DB pool is not initialized")
