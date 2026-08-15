@@ -11,7 +11,7 @@ from hashids import Hashids
 from dotenv import load_dotenv
 
 
-from apps.database import get_my_hash, get_name_by_id, add_stars, add_receiv, add_send, add_watch, check_admin, refund_stars
+from apps.database import get_my_hash, get_name_by_id, add_stars, add_receiv, add_send, add_watch, check_admin, refund_stars, use_promo
 from bot_instance import bot
 
 
@@ -38,6 +38,10 @@ close_menu = InlineKeyboardMarkup(inline_keyboard=[
 class MessageStates(StatesGroup):
     user = State()
     text = State()
+
+
+class PromoStates(StatesGroup):
+    promo = State()
 
 
 @message_router.message(Command('send'))
@@ -153,7 +157,49 @@ async def who(callback: CallbackQuery):
         prices=prices,
         start_parameter="buy_stars_product"
     )
+    promo_keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(
+                text="🎟️ Ввести промокод",
+                callback_data=f"promo_who_{user_id}"
+            )
+        ]
+    ])
+    await callback.message.answer(
+        "🎟️ Есть промокод?\nВведи его, чтобы получить доступ без оплаты.",
+        reply_markup=promo_keyboard
+    )
     await callback.answer("🕵️‍♂️ Узнать кто")
+
+
+@message_router.callback_query(F.data.startswith("promo_who_"))
+async def promo_who(callback: CallbackQuery, state: FSMContext):
+    user_id = int(callback.data[len("promo_who_"):])
+    await callback.message.edit_text("🎟️ Введи промокод:")
+    await state.set_state(PromoStates.promo)
+    await state.update_data(user=user_id)
+    # await callback.answer("🚧 Функция находится в разработке", show_alert=True)
+
+
+@message_router.message(PromoStates.promo)
+async def promo_who_payment(message: Message, state: FSMContext):
+    confirmation = await use_promo(message.text)
+    if confirmation:
+        data = await state.get_data()
+        user_id = data["user"]
+        name = await get_name_by_id(user_id)
+        reply_keyboard = InlineKeyboardMarkup(inline_keyboard=[
+                [
+                    InlineKeyboardButton(
+                        text="👤 Перейти к человеку",
+                        url=f"tg://user?id={user_id}"
+                    )
+                ]
+            ])
+        await message.answer(f"✅ <b>🎉 Промокод успешно использован!</b>\n\n💬 Сообщение было отправлено пользователем <b><a href='tg://openmessage?user_id={user_id}'>{name}</a></b>🤫", reply_markup=reply_keyboard, parse_mode="HTML", message_effect_id="5046509860389126442")
+    else:
+        await message.answer("❌ <b>Промокод недействителен!</b>\n\nПроверь правильность введённого промокода или попробуй другой.", parse_mode="HTML")
+    await state.clear()
 
 
 @message_router.pre_checkout_query()
@@ -165,7 +211,13 @@ async def pre_checkout(pre_checkout: PreCheckoutQuery):
 async def handle_payment(message: Message):
     comment = int(message.successful_payment.invoice_payload)
     name = await get_name_by_id(comment)
-    await message.answer(f"✅ <b>Оплата прошла успешно!</b>\n\n💬 Сообщение было отправлено пользователем <b><a href='tg://openmessage?user_id={comment}'>{name}</a></b>🤫", parse_mode="HTML", message_effect_id="5046509860389126442")
+    reply_keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(
+            text="👤 Перейти к человеку",
+            url=f"tg://user?id={comment}"
+        )]
+    ])
+    await message.answer(f"✅ <b>Оплата прошла успешно!</b>\n\n💬 Сообщение было отправлено пользователем <b><a href='tg://openmessage?user_id={comment}'>{name}</a></b>🤫", reply_markup=reply_keyboard, parse_mode="HTML", message_effect_id="5046509860389126442")
     await add_stars(message.from_user.id)
 
 
