@@ -11,7 +11,7 @@ from hashids import Hashids
 from dotenv import load_dotenv
 
 
-from apps.database import get_my_hash, get_name_by_id, add_stars, add_receiv, add_send, add_watch, check_admin
+from apps.database import get_my_hash, get_name_by_id, add_stars, add_receiv, add_send, add_watch, check_admin, refund_stars
 from bot_instance import bot
 
 
@@ -192,6 +192,7 @@ async def refund_handler(message: Message, command: CommandObject):
                     f"✅ Возврат пользователю `{user_id}` по платёжному ID `{telegram_payment_charge_id}` успешно оформлен.",
                     parse_mode="Markdown"
                 )
+                await refund_stars(user_id)
             else:
                 await message.answer(
                     f"⚠️ Telegram не подтвердил возврат `{telegram_payment_charge_id}`.",
