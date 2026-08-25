@@ -230,3 +230,104 @@ async def use_promo(promo):
             return True
         else:
             return False
+
+
+async def get_all_promos():
+    if pool is None:
+        raise RuntimeError("DB pool is not initialized")
+    async with pool.acquire() as conn:
+        rows = await conn.fetch(
+            "SELECT code, type FROM promocodes;"
+        )
+        return [{"code": row["code"], "type": row["type"]} for row in rows]
+
+
+async def get_and_delete_promo(code):
+    if pool is None:
+        raise RuntimeError("DB pool is not initialized")
+    async with pool.acquire() as conn:
+        promo = await conn.fetchrow(
+            "SELECT code, type FROM promocodes WHERE code = $1;",
+            code
+        )
+        if promo is None:
+            return None
+        if promo["type"] == "tech":
+            return {
+                "code": promo["code"],
+                "type": promo["type"]
+            }
+        await conn.execute(
+            "DELETE FROM promocodes WHERE code = $1;",
+            code
+        )
+        return {
+            "code": promo["code"],
+            "type": promo["type"]
+        }
+
+
+async def update_activity(sent_users):
+    if pool is None:
+        raise RuntimeError("DB pool is not initialized")
+    async with pool.acquire() as conn:
+        await conn.execute(
+            """
+            UPDATE users
+            SET active = FALSE;
+            """
+        )
+        if sent_users:
+            await conn.execute(
+                """
+                UPDATE users
+                SET active = TRUE
+                WHERE telegram_id = ANY($1::bigint[]);
+                """,
+                sent_users
+            )
+
+
+async def get_users_by_parameter(parameter):
+    if pool is None:
+        raise RuntimeError("DB pool is not initialized")
+    active = parameter == "active"
+    async with pool.acquire() as conn:
+        rows = await conn.fetch(
+            """
+            SELECT id, name, username
+            FROM users
+            WHERE active = $1
+            ORDER BY primary_id;
+            """,
+            active
+        )
+    return [dict(row) for row in rows]
+
+
+async def get_all_user_info(id):
+    if pool is None:
+        raise RuntimeError("DB pool is not initialized")
+    async with pool.acquire() as conn:
+        row = await conn.fetchrow(
+            """
+            SELECT *
+            FROM users
+            WHERE id = $1
+            """,
+            id
+        )
+    return dict(row) if row else None
+
+
+async def delete_user(id):
+    if pool is None:
+        raise RuntimeError("DB pool is not initialized")
+    async with pool.acquire() as conn:
+        await conn.execute(
+            """
+            DELETE FROM users
+            WHERE id = $1
+            """,
+            id
+        )
