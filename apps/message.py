@@ -56,6 +56,7 @@ async def send_by_callback(callback: CallbackQuery, state: FSMContext):
     await callback.message.answer(text="📬 <b>Кому хочешь отправить анонимное сообщение?</b>\n\n👤 Выбери пользователя из списка ниже, чтобы отправить своё послание 🤫", reply_markup=send_menu, parse_mode="HTML")
     await state.set_state(MessageStates.user)
     await callback.answer("👤 Выбери получателя")
+    await callback.answer()
 
 
 async def send_by_args(args, message: Message, state: FSMContext):
@@ -115,10 +116,9 @@ async def send_message(message: Message, state: FSMContext):
         except TelegramForbiddenError:
             hash = await get_my_hash(my_id)
             await message.answer(text=f"😅 <b>Упс...</b>\n\nСообщение не было отправлено, потому что этот пользователь ещё не пользуется ботом 🚫\n\n🔗 <b>Твоя ссылка для приглашения:</b>\n<i>https://t.me/Anonim_Messssage_Bot?start={hash}</i>\n\nОтправь её другу, чтобы он подключился и вы смогли обмениваться анонимными сообщениями 🤫", reply_markup=share_menu, parse_mode="HTML", disable_web_page_preview=True)
-        except TelegramAPIError as e:
+        except TelegramAPIError:
             hash = await get_my_hash(my_id)
             await message.answer(text=f"😅 <b>Упс...</b>\n\nСообщение не было отправлено, потому что этот пользователь ещё не пользуется ботом 🚫\n\n🔗 <b>Твоя ссылка для приглашения:</b>\n<i>https://t.me/Anonim_Messssage_Bot?start={hash}</i>\n\nОтправь её другу, чтобы он подключился и вы смогли обмениваться анонимными сообщениями 🤫", reply_markup=share_menu, parse_mode="HTML", disable_web_page_preview=True)
-            print("TelegramAPIError:", e)
         except Exception as e:
             await message.answer(text="⚙️ <b>Упс...</b>\n\nСообщение не было отправлено по техническим причинам 😔\n\nПожалуйста, попробуй ещё раз чуть позже ⏳", reply_markup=ReplyKeyboardRemove(), parse_mode="HTML")
             print(e)
@@ -179,6 +179,7 @@ async def promo_who(callback: CallbackQuery, state: FSMContext):
     await state.set_state(PromoStates.promo)
     await state.update_data(user=user_id)
     # await callback.answer("🚧 Функция находится в разработке", show_alert=True)
+    await callback.answer()
 
 
 @message_router.message(PromoStates.promo)
