@@ -29,6 +29,7 @@ broadcast_menu = InlineKeyboardMarkup(inline_keyboard=[
 stats_menu = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text='💾 Скачать базу данных', callback_data='stats_download')],
     [InlineKeyboardButton(text='🟢 Активные', callback_data='stats_active'), InlineKeyboardButton(text='🔴 Неактивные', callback_data='stats_inactive')],
+    [InlineKeyboardButton(text='🔄 Обновить списки активности', callback_data='stats_refresh')],
     [InlineKeyboardButton(text='📄 Выписка пользователя', callback_data='stats_user_report')],
     [InlineKeyboardButton(text='🔙 Назад', callback_data='admin_menu')]
     ])
@@ -216,6 +217,7 @@ async def admin2(callback: CallbackQuery):
 
 @admin_router.callback_query(F.data.startswith("stats_"))
 async def stats(callback: CallbackQuery, state: FSMContext):
+    await callback.answer()
     action = callback.data[len("stats_"):]
     match action:
         case "download":
@@ -248,10 +250,30 @@ async def stats(callback: CallbackQuery, state: FSMContext):
                 )
             text = "\n".join(lines)
             await send_long_message(callback.message, text)
+        case "refresh":
+            users = await get_all_users()
+            sent_users = []
+            for id in users:
+                try:
+                    fast_msg = await callback.bot.send_message(
+                        chat_id=id,
+                        text="🔄 <b>Перезагрузка таблиц активности</b>\n\n⏳ Проверяем активность пользователей...",
+                        parse_mode="HTML",
+                    )
+                    await asyncio.sleep(0.5)
+                    await fast_msg.delete()
+                    sent_users.append(id)
+                except TelegramAPIError:
+                    pass
+            await callback.message.answer(
+                "✅ <b>Таблицы активности обновлены!</b>\n\n🟢 Активные пользователи обновлены.",
+                parse_mode="HTML"
+            )
+            await update_activity(sent_users)
+
         case "user_report":
             await state.set_state(UserInfoStates.waiting_id)
             await callback.message.answer("📄 <b>Выписка пользователя</b>\n\nВведите Telegram ID пользователя:", parse_mode="HTML")
-    await callback.answer()
 
 
 @admin_router.message(UserInfoStates.waiting_id)
@@ -491,3 +513,5 @@ async def broadcast_answer(callback: CallbackQuery):
 async def cancel_delete(callback: CallbackQuery):
     await callback.message.edit_text("❌ Удаление отменено")
     await callback.answer()
+
+
