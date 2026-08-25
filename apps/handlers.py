@@ -116,7 +116,7 @@ async def start(message: Message, command: CommandObject, state: FSMContext, bot
             if hash is not None:
                 break
         status = await check_admin(message.from_user.id)
-        if status == 'M':
+        if status in ('M', 'O'):
             is_admin = True
         else:
             is_admin = False
@@ -166,7 +166,7 @@ async def instruction(callback: CallbackQuery):
 async def start2(callback: CallbackQuery):
     hash = await get_my_hash(callback.from_user.id)
     status = await check_admin(callback.from_user.id)
-    if status == 'M':
+    if status in ('M', 'O'):
         is_admin = True
     else:
         is_admin = False
@@ -185,10 +185,11 @@ async def profile2(message: Message):
     sent, received, viewed, wasted = await get_info(message.from_user.id)
     hash = await get_my_hash(message.from_user.id)
     await message.answer(text=f"👤 <b>Твой профиль</b>\n\n🔗 <b>Секретная ссылка:</b>\n<i>https://t.me/Anonim_Messssage_Bot?start={hash}</i>\n📤 <b><a href='https://t.me/share/url?url=t.me/Anonim_Messssage_Bot?start={hash}'>Поделись ею с друзьями!</a></b>\n\n📊 <b>Статистика:</b>\n🟢 Отправлено: <b>{sent}</b>\n👁 Просмотрено ссылку: <b>{viewed}</b>\n🌟 Потрачено звезд: <b>{wasted}</b>\n📨 Получено: <b>{received}</b>", reply_markup=instruction_menu, parse_mode="HTML", disable_web_page_preview=True)
-
+    
 
 @router.callback_query(F.data == 'profile')
 async def profile(callback: CallbackQuery):
     sent, received, viewed, wasted = await get_info(callback.from_user.id)
     hash = await get_my_hash(callback.from_user.id)
     await callback.message.answer(text=f"👤 <b>Твой профиль</b>\n\n🔗 <b>Секретная ссылка:</b>\n<i>https://t.me/Anonim_Messssage_Bot?start={hash}</i>\n📤 <b><a href='https://t.me/share/url?url=t.me/Anonim_Messssage_Bot?start={hash}'>Поделись ею с друзьями!</a></b>\n\n📊 <b>Статистика:</b>\n🟢 Отправлено: <b>{sent}</b>\n👁 Просмотрено ссылку: <b>{viewed}</b>\n🌟 Потрачено звезд: <b>{wasted}</b>\n📨 Получено: <b>{received}</b>", reply_markup=instruction_menu, parse_mode="HTML", disable_web_page_preview=True)
+    await callback.answer("👤 Профиль")
