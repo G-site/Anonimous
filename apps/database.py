@@ -282,7 +282,7 @@ async def update_activity(sent_users):
                 """
                 UPDATE users
                 SET active = TRUE
-                WHERE telegram_id = ANY($1);
+                WHERE id = ANY($1);
                 """,
                 sent_users
             )
