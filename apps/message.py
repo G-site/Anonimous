@@ -174,12 +174,11 @@ async def who(callback: CallbackQuery):
 
 @message_router.callback_query(F.data.startswith("promo_who_"))
 async def promo_who(callback: CallbackQuery, state: FSMContext):
+    await callback.answer()
     user_id = int(callback.data[len("promo_who_"):])
     await callback.message.edit_text("🎟️ Введи промокод:")
     await state.set_state(PromoStates.promo)
     await state.update_data(user=user_id)
-    # await callback.answer("🚧 Функция находится в разработке", show_alert=True)
-    await callback.answer()
 
 
 @message_router.message(PromoStates.promo)
