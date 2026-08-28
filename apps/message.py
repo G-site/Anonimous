@@ -175,10 +175,13 @@ async def who(callback: CallbackQuery):
 @message_router.callback_query(F.data.startswith("promo_who_"))
 async def promo_who(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
+    print("1") 
     user_id = int(callback.data[len("promo_who_"):])
     print(user_id)    
     await callback.message.edit_text("🎟️ Введи промокод:")
+    print("2") 
     await state.set_state(PromoStates.promo)
+    print("3") 
     await state.update_data(user=user_id)
 
 
