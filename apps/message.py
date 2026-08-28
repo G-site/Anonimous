@@ -161,7 +161,7 @@ async def who(callback: CallbackQuery):
         [
             InlineKeyboardButton(
                 text="🎟️ Ввести промокод",
-                callback_data=f"spromo_who_{user_id}"
+                callback_data=f"reveal_promo_{user_id}"
             )
         ]
     ])
@@ -172,17 +172,17 @@ async def who(callback: CallbackQuery):
     await callback.answer("🕵️‍♂️ Узнать кто")
 
 
-@message_router.callback_query(F.data.startswith("spromo_who_"))
-async def spromo_who(callback: CallbackQuery, state: FSMContext):
+@message_router.callback_query(F.data.startswith("reveal_promo_"))
+async def reveal_promo(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
-    user_id = int(callback.data[len("spromo_who_"):])
+    user_id = int(callback.data[len("reveal_promo_"):])
     await callback.message.edit_text("🎟️ Введи промокод:")
     await state.set_state(PromoStates.promo)
     await state.update_data(user=user_id)
 
 
 @message_router.message(PromoStates.promo)
-async def spromo_who_payment(message: Message, state: FSMContext):
+async def reveal_promo_payment(message: Message, state: FSMContext):
     confirmation = await use_promo(message.text)
     if confirmation:
         data = await state.get_data()
